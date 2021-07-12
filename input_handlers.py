@@ -1,11 +1,11 @@
 from typing import Optional
+
 import tcod.event
+
 from actions import Action, EscapeAction, MovementAction
 
+
 class EventHandler(tcod.event.EventDispatch[Action]):
-    """
-    This class handles the input events (like from the keyboard) and system events
-    """
     def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
         raise SystemExit()
 
