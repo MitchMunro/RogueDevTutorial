@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+# up to here, Part 6 "One thing you might have noticed is that we’re letting our enemies move and attack in diagonal directions,"
 import copy
 
 import tcod
-
+import color
 from engine import Engine
 from procgen import generate_dungeon
 import entity_factories
@@ -16,7 +17,7 @@ def main() -> None:
     screen_height = 50
 
     map_width = 80
-    map_height = 45
+    map_height = 43
 
     room_max_size = 12
     room_min_size = 4
@@ -47,6 +48,10 @@ def main() -> None:
     )
     engine.update_fov()
 
+    engine.message_log.add_message(
+        "Hello and welcome, adventurer, to yet another dungeon!", color.welcome_text
+    )
+
     # with tcod.context.new_terminal(
     #     screen_width,
     #     screen_height,
@@ -70,8 +75,11 @@ def main() -> None:
         sdl_window_flags=WindowFlags
     ) as context:
         while True:
-            engine.render(console=root_console, context=context)
-            engine.event_handler.handle_events()
+            root_console.clear()
+            engine.event_handler.on_render(console=root_console)
+            context.present(root_console)
+
+            engine.event_handler.handle_events(context)
 
 
 if __name__ == "__main__":
