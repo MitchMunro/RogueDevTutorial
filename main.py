@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-# up to here, Part 6 "One thing you might have noticed is that we’re letting our enemies move and attack in diagonal directions,"
+# up to here, Part
 import copy
 
 import tcod
+import traceback
 import color
 from engine import Engine
 from procgen import generate_dungeon
@@ -24,6 +25,7 @@ def main() -> None:
     max_rooms = 30
 
     max_monsters_per_room = 2
+    max_items_per_room = 2
 
     # tileset = tcod.tileset.load_tilesheet(
     #     "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
@@ -44,6 +46,7 @@ def main() -> None:
         map_width=map_width,
         map_height=map_height,
         max_monsters_per_room=max_monsters_per_room,
+        max_items_per_room=max_items_per_room,
         engine=engine,
     )
     engine.update_fov()
@@ -51,18 +54,6 @@ def main() -> None:
     engine.message_log.add_message(
         "Hello and welcome, adventurer, to yet another dungeon!", color.welcome_text
     )
-
-    # with tcod.context.new_terminal(
-    #     screen_width,
-    #     screen_height,
-    #     tileset=tileset,
-    #     title="Emergence",
-    #     vsync=True,
-    # ) as context:
-    #     root_console = tcod.Console(screen_width, screen_height, order="F")
-    #     while True:
-    #         engine.render(console=root_console, context=context)
-    #         engine.event_handler.handle_events()
 
     root_console = tcod.Console(screen_width, screen_height, order="F")
 
@@ -79,7 +70,14 @@ def main() -> None:
             engine.event_handler.on_render(console=root_console)
             context.present(root_console)
 
-            engine.event_handler.handle_events(context)
+            try:
+                for event in tcod.event.wait():
+                    context.convert_event(event)
+                    engine.event_handler.handle_events(event)
+            except Exception:  # Handle exceptions in game.
+                traceback.print_exc()  # Print error to stderr.
+                # Then print the error to the message log.
+                engine.message_log.add_message(traceback.format_exc(), color.error)
 
 
 if __name__ == "__main__":
