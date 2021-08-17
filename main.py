@@ -22,12 +22,8 @@ def main() -> None:
     screen_width = 80
     screen_height = 50
 
-    # tileset = tcod.tileset.load_tilesheet(
-    #     "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
-    # )
-
     tileset = tcod.tileset.load_tilesheet(
-        "Gold-plated-16x16-v2.png", 16, 16, tcod.tileset.CHARMAP_CP437
+        "Redjack17_edit.png", 16, 16, tcod.tileset.CHARMAP_CP437
     )
 
     handler: input_handlers.BaseEventHandler = setup_game.MainMenu()
@@ -67,19 +63,6 @@ def main() -> None:
         except BaseException:  # Save on any other unexpected exception.
             save_game(handler, "savegame.sav")
             raise
-        # while True:
-        #     root_console.clear()
-        #     engine.event_handler.on_render(console=root_console)
-        #     context.present(root_console)
-        #
-        #     try:
-        #         for event in tcod.event.wait():
-        #             context.convert_event(event)
-        #             engine.event_handler.handle_events(event)
-        #     except Exception:  # Handle exceptions in game.
-        #         traceback.print_exc()  # Print error to stderr.
-        #         # Then print the error to the message log.
-        #         engine.message_log.add_message(traceback.format_exc(), color.error)
 
 
 if __name__ == "__main__":

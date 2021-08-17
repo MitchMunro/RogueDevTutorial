@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import copy
 from typing import Iterable, Iterator, Optional, TYPE_CHECKING
 import numpy as np  # type: ignore
 from tcod.console import Console
@@ -16,7 +18,7 @@ class GameMap:
     ):
         self.engine = engine
         self.width, self.height = width, height
-        self. tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
+        self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
         self.entities = set(entities)
         self.visible = np.full((width, height), fill_value=False, order="F")  # Tiles the player can currently see
         self.explored = np.full((width, height), fill_value=False, order="F")  # Tiles the player has seen before
@@ -61,18 +63,34 @@ class GameMap:
         """Return True if x and y are inside of the bounds of this map."""
         return 0 <= x < self.width and 0 <= y < self.height
 
+    # def draw_wall_properly(self) -> tile_types:
+
     def render(self, console: Console) -> None:
         """
         Renders the map.
         If a tile is in the "visible" array, then draw it with the "light" colors.
         If it isn't, but it's in the "explored" array, then draw it with the "dark" color
         Otherwise, the default is "SHROUD".
+
+        If element 1 in condlist is true, do the thing in choicelist 1.
+        Else if element 2 in condlist is true, do the thing in choicelist 2.
         """
-        console.tiles_rgb[0: self.width, 0: self.height] = np.select(
+
+        game_array = np.select(
             condlist=[self.visible, self.explored],
             choicelist=[self.tiles["light"], self.tiles["dark"]],
             default=tile_types.SHROUD,
         )
+
+        # game_array_copy = copy.deepcopy(game_array)
+        #
+        # for xy_index, tile in np.ndenumerate(game_array):       # tile has [(charcter code) fg color(0, 0, 0), bg color( 0, 0, 0)
+        #     if tile[0] == ord("#"):                             # If the element is a wall
+        #         game_array_copy[xy_index[0], xy_index[1]] = (ord("/"), (255, 255, 255), (0, 0, 0))
+        #
+        # console.tiles_rgb[0: self.width, 0: self.height] = game_array_copy
+
+        console.tiles_rgb[0: self.width, 0: self.height] = game_array
 
         entities_sorted_for_rendering = sorted(
             self.entities, key=lambda x: x.render_order.value

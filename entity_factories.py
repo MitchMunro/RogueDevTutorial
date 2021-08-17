@@ -80,10 +80,10 @@ Equippable Items
 '''
 
 dagger = Item(
-    char="/", color=(0, 191, 255), name="Dagger", equippable=equippable.Dagger()
+    char="\\", color=(0, 191, 255), name="Dagger", equippable=equippable.Dagger()
 )
 
-sword = Item(char="/", color=(0, 191, 255), name="Sword", equippable=equippable.Sword())
+sword = Item(char="\\", color=(0, 191, 255), name="Sword", equippable=equippable.Sword())
 
 leather_armor = Item(
     char="[",

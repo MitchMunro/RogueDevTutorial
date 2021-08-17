@@ -1,6 +1,7 @@
 from typing import Tuple
-
+from engine import Engine
 import numpy as np  # type: ignore
+
 
 # Tile graphics structured type compatible with Console.tiles_rgb.
 graphic_dt = np.dtype(
@@ -39,14 +40,8 @@ SHROUD = np.array((ord(" "), (255, 255, 255), (5, 0, 20)), dtype=graphic_dt)
 floor = new_tile(
     walkable=True,
     transparent=True,
-    dark=(ord("."), (35, 0, 69), (5, 0, 20)),
-    light=(ord("."), (54, 44, 69), (15, 10, 30)),
-)
-wall = new_tile(
-    walkable=False,
-    transparent=False,
-    dark=(ord("#"), (79, 74, 127), (5, 0, 20)),
-    light=(ord("#"), (142, 134, 223), (15, 10, 30)),
+    dark=(ord("`"), (35, 0, 69), (5, 0, 20)),
+    light=(ord("`"), (54, 44, 69), (15, 10, 30)),
 )
 down_stairs = new_tile(
     walkable=True,
@@ -54,3 +49,12 @@ down_stairs = new_tile(
     dark=(ord(">"), (0, 0, 100), (50, 50, 150)),
     light=(ord(">"), (255, 255, 255), (200, 180, 50)),
 )
+
+wall = new_tile(
+    walkable=False,
+    transparent=False,
+    dark=(ord("#"), (79, 74, 127), (5, 0, 20)),
+    light=(ord("#"), (142, 134, 223), (15, 10, 30)),
+)
+
+# TODO make new tile for each wall piece possible.
