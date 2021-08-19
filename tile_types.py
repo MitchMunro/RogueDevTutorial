@@ -1,7 +1,7 @@
 from typing import Tuple
 from engine import Engine
 import numpy as np  # type: ignore
-
+from enum import Enum
 
 # Tile graphics structured type compatible with Console.tiles_rgb.
 graphic_dt = np.dtype(
@@ -57,4 +57,22 @@ wall = new_tile(
     light=(ord("#"), (142, 134, 223), (15, 10, 30)),
 )
 
-# TODO make new tile for each wall piece possible.
+test_tile = new_tile(
+    walkable=True,
+    transparent=False,
+    dark=(ord("*"), (255, 255, 0), (0, 0, 0)),
+    light=(ord("*"), (255, 255, 0), (0, 0, 0)),
+)
+
+
+def new_wall(char: str = None) -> tile_dt:
+    if char is None:
+        return wall
+    else:
+        w = new_tile(
+            walkable=False,
+            transparent=False,
+            dark=(ord(char), (79, 74, 127), (5, 0, 20)),
+            light=(ord(char), (142, 134, 223), (15, 10, 30)),
+        )
+        return w

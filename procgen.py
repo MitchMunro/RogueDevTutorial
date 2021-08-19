@@ -3,11 +3,13 @@ from game_map import GameMap
 import tile_types
 import random
 from typing import Dict, Iterator, Tuple, List, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from engine import Engine
     from entity import Entity
 import tcod
 import entity_factories
+import numpy as np
 
 max_items_by_floor = [
     (1, 1),
@@ -43,7 +45,7 @@ enemy_chances: Dict[int, List[Tuple[Entity, int]]] = {
 
 
 def get_max_value_for_floor(
-    max_value_by_floor: List[Tuple[int, int]], floor: int
+        max_value_by_floor: List[Tuple[int, int]], floor: int
 ) -> int:
     current_value = 0
 
@@ -57,9 +59,9 @@ def get_max_value_for_floor(
 
 
 def get_entities_at_random(
-    weighted_chances_by_floor: Dict[int, List[Tuple[Entity, int]]],
-    number_of_entities: int,
-    floor: int,
+        weighted_chances_by_floor: Dict[int, List[Tuple[Entity, int]]],
+        number_of_entities: int,
+        floor: int,
 ) -> List[Entity]:
     entity_weighted_chances = {}
 
@@ -112,7 +114,7 @@ class RectangularRoom:
         )
 
 
-def place_entities(room: RectangularRoom, dungeon: GameMap, floor_number: int,) -> None:
+def place_entities(room: RectangularRoom, dungeon: GameMap, floor_number: int, ) -> None:
     number_of_monsters = random.randint(
         0, get_max_value_for_floor(max_monsters_by_floor, floor_number)
     )
@@ -156,18 +158,84 @@ def tunnel_between(
         yield x, y
 
 
+# def draw_tile_graphics(dungeon_map: GameMap, layout: np.ndarray, engine: Engine):
+#     for (x, y), t in np.ndenumerate(layout):
+#         if t == 0:
+#             dungeon_map.tiles[x, y] = tile_types.floor
+#         elif t == 1:
+#             mask = 0
+#
+#             '''
+#             KEEP IN MIND: layout array starts at (0,0) in the top left corner.
+#             - As you go DOWN the y value increases.
+#             - As you go LEFT the X value increases.
+#             '''
+#             if is_wall_and_visible(engine, layout, dungeon_map.visible, x, y - 1):  # Above
+#                 mask += 1
+#             if is_wall_and_visible(engine, layout, dungeon_map.visible, x, y + 1):  # Below
+#                 mask += 2
+#             if is_wall_and_visible(engine, layout, dungeon_map.visible, x - 1, y):  # Left
+#                 mask += 4
+#             if is_wall_and_visible(engine, layout, dungeon_map.visible, x + 1, y):  # Right
+#                 mask += 8
+#
+#             if mask == 0:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("○")  # Pillar because we can't see neighbors
+#             elif mask == 1:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("║")  # Wall only to the north
+#             elif mask == 2:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("║")  # Wall only to the south
+#             elif mask == 3:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("║")  # Wall to the north and south
+#             elif mask == 4:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("═")  # Wall only to the west
+#             elif mask == 5:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("╝")  # Wall to the north and west
+#             elif mask == 6:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("╗")  # Wall to the south and west
+#             elif mask == 7:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("╣")  # Wall to the north, south and west
+#             elif mask == 8:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("═")  # Wall only to the east
+#             elif mask == 9:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("╚")  # Wall to the north and east
+#             elif mask == 10:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("╔")  # Wall to the south and east
+#             elif mask == 11:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("╠")  # Wall to the north, south and east
+#             elif mask == 12:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("═")  # Wall to the east and west
+#             elif mask == 13:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("╩")  # Wall to the east, west, and south╩
+#             elif mask == 14:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("╦")  # Wall to the east, west, and north
+#             elif mask == 15:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall("╬")  # ╬ Wall on all sides
+#             else:
+#                 dungeon_map.tiles[x, y] = tile_types.new_wall()
+#
+#
+# def is_wall_and_visible(engine: Engine, layout: np.ndarray, visible_array: np.ndarray, x: int, y: int) -> bool:
+#     if x < 0 or y < 0 or x > engine.game_world.map_width - 1 or y > engine.game_world.map_height - 1:
+#         return False
+#     if layout[x, y] == 1 and visible_array[x, y] is True:
+#         return True
+#     else:
+#         return False
+
+
 if TYPE_CHECKING:
     from entity import Entity
 
 
 # noinspection PyTypeChecker
 def generate_dungeon(
-    max_rooms: int,
-    room_min_size: int,
-    room_max_size: int,
-    map_width: int,
-    map_height: int,
-    engine: Engine,
+        max_rooms: int,
+        room_min_size: int,
+        room_max_size: int,
+        map_width: int,
+        map_height: int,
+        engine: Engine,
 ) -> GameMap:
     """Generate a new dungeon map."""
     player = engine.player
@@ -180,8 +248,12 @@ def generate_dungeon(
         room_width = random.randint(room_min_size, room_max_size)
         room_height = random.randint(room_min_size, room_max_size)
 
-        x = random.randint(0, dungeon_map.width - room_width - 1)
-        y = random.randint(0, dungeon_map.height - room_height - 1)
+        # x = random.randint(0, dungeon_map.width - room_width - 1)
+        # y = random.randint(0, dungeon_map.height - room_height - 1)
+
+        # Todo
+        x = 1
+        y = 1
 
         # "RectangularRoom" class makes rectangles easier to work with
         new_room = RectangularRoom(x, y, room_width, room_height)
@@ -192,7 +264,7 @@ def generate_dungeon(
         # If there are no intersections then the room is valid.
 
         # Dig out this rooms inner area.
-        dungeon_map.tiles[new_room.inner] = tile_types.floor
+        dungeon_map.tile_layout[new_room.inner] = 0
 
         if len(rooms) == 0:
             # The first room, where the player starts.
@@ -200,16 +272,19 @@ def generate_dungeon(
         else:  # All rooms after the first.
             # Dig out a tunnel between this room and the previous one.
             for x, y in tunnel_between(rooms[-1].center, new_room.center):
-                dungeon_map.tiles[x, y] = tile_types.floor
+                dungeon_map.tile_layout[x, y] = 0
 
             center_of_last_room = new_room.center
 
-        place_entities(new_room, dungeon_map, engine.game_world.current_floor)
+        # Todo change back
 
-        dungeon_map.tiles[center_of_last_room] = tile_types.down_stairs
-        dungeon_map.downstairs_location = center_of_last_room
+        # place_entities(new_room, dungeon_map, engine.game_world.current_floor)
+        #
+        # dungeon_map.tiles[center_of_last_room] = tile_types.down_stairs
+        # dungeon_map.downstairs_location = center_of_last_room
 
         # Finally, append the new room to the list.
+
         rooms.append(new_room)
 
     return dungeon_map

@@ -185,3 +185,15 @@ class BumpAction(ActionWithDirection):
 
         else:
             return MovementAction(self.entity, self.dx, self.dy).perform()
+
+
+class DigAction(Action):
+    def __init__(self, entity: Actor, x, y):
+        self.entity = entity
+        self.x = x
+        self.y = y
+        super().__init__(entity)
+
+    def perform(self) -> None:
+        self.engine.game_map.tile_layout[self.x, self.y] = 0
+

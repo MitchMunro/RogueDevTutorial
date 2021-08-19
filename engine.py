@@ -7,6 +7,8 @@ import exceptions
 import render_functions
 import lzma
 import pickle
+import numpy as np
+
 if TYPE_CHECKING:
     from entity import Actor
     from game_map import GameMap, GameWorld
@@ -28,11 +30,17 @@ class Engine:
                     entity.ai.perform()
                 except exceptions.Impossible:
                     pass  # Ignore impossible action exceptions from AI.
-    
+
     def update_fov(self) -> None:
         """Recompute the visible area based on the players point of view."""
+        transparent_array = np.full((self.game_map.width, self.game_map.height), fill_value=False, order="F")
+        if self.game_map.tile_layout is not None:
+            for (x, y), t in np.ndenumerate(self.game_map.tile_layout):
+                if t == 0:
+                    transparent_array[x, y] = True
+
         self.game_map.visible[:] = compute_fov(
-            self.game_map.tiles["transparent"],
+            transparent_array,  # used to be: self.game_map.tiles["transparent"]
             (self.player.x, self.player.y),
             radius=8,
         )

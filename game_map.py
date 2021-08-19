@@ -18,6 +18,7 @@ class GameMap:
     ):
         self.engine = engine
         self.width, self.height = width, height
+        self.tile_layout = np.full((width, height), fill_value=1, order="F")   # 0=floor, 1=wall
         self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
         self.entities = set(entities)
         self.visible = np.full((width, height), fill_value=False, order="F")  # Tiles the player can currently see
@@ -63,8 +64,6 @@ class GameMap:
         """Return True if x and y are inside of the bounds of this map."""
         return 0 <= x < self.width and 0 <= y < self.height
 
-    # def draw_wall_properly(self) -> tile_types:
-
     def render(self, console: Console) -> None:
         """
         Renders the map.
@@ -76,19 +75,15 @@ class GameMap:
         Else if element 2 in condlist is true, do the thing in choicelist 2.
         """
 
+        self.draw_tile_graphics(self.tile_layout, self.engine)
+
         game_array = np.select(
             condlist=[self.visible, self.explored],
             choicelist=[self.tiles["light"], self.tiles["dark"]],
             default=tile_types.SHROUD,
         )
 
-        # game_array_copy = copy.deepcopy(game_array)
-        #
-        # for xy_index, tile in np.ndenumerate(game_array):       # tile has [(charcter code) fg color(0, 0, 0), bg color( 0, 0, 0)
-        #     if tile[0] == ord("#"):                             # If the element is a wall
-        #         game_array_copy[xy_index[0], xy_index[1]] = (ord("/"), (255, 255, 255), (0, 0, 0))
-        #
-        # console.tiles_rgb[0: self.width, 0: self.height] = game_array_copy
+        # self.draw_tile_graphics(self.tile_layout, self.engine)
 
         console.tiles_rgb[0: self.width, 0: self.height] = game_array
 
@@ -101,6 +96,70 @@ class GameMap:
                 console.print(
                     x=entity.x, y=entity.y, string=entity.char, fg=entity.color
                 )
+
+    def draw_tile_graphics(self, layout: np.ndarray, engine: Engine):
+        for (x, y), t in np.ndenumerate(layout):
+            if t == 0:
+                self.tiles[x, y] = tile_types.floor
+            elif t == 1:
+                mask = 0
+
+                '''
+                KEEP IN MIND: layout array starts at (0,0) in the top left corner.
+                - As you go DOWN the y value increases.
+                - As you go LEFT the X value increases.
+                '''
+                if self.is_wall_and_visible(x, y - 1):  # Above
+                    mask += 1
+                if self.is_wall_and_visible(x, y + 1):  # Below
+                    mask += 2
+                if self.is_wall_and_visible(x - 1, y):  # Left
+                    mask += 4
+                if self.is_wall_and_visible(x + 1, y):  # Right
+                    mask += 8
+
+                if mask == 0:
+                    self.tiles[x, y] = tile_types.new_wall("○")  # Pillar because we can't see neighbors
+                elif mask == 1:
+                    self.tiles[x, y] = tile_types.new_wall("║")  # Wall only to the north
+                elif mask == 2:
+                    self.tiles[x, y] = tile_types.new_wall("║")  # Wall only to the south
+                elif mask == 3:
+                    self.tiles[x, y] = tile_types.new_wall("║")  # Wall to the north and south
+                elif mask == 4:
+                    self.tiles[x, y] = tile_types.new_wall("═")  # Wall only to the west
+                elif mask == 5:
+                    self.tiles[x, y] = tile_types.new_wall("╝")  # Wall to the north and west
+                elif mask == 6:
+                    self.tiles[x, y] = tile_types.new_wall("╗")  # Wall to the south and west
+                elif mask == 7:
+                    self.tiles[x, y] = tile_types.new_wall("╣")  # Wall to the north, south and west
+                elif mask == 8:
+                    self.tiles[x, y] = tile_types.new_wall("═")  # Wall only to the east
+                elif mask == 9:
+                    self.tiles[x, y] = tile_types.new_wall("╚")  # Wall to the north and east
+                elif mask == 10:
+                    self.tiles[x, y] = tile_types.new_wall("╔")  # Wall to the south and east
+                elif mask == 11:
+                    self.tiles[x, y] = tile_types.new_wall("╠")  # Wall to the north, south and east
+                elif mask == 12:
+                    self.tiles[x, y] = tile_types.new_wall("═")  # Wall to the east and west
+                elif mask == 13:
+                    self.tiles[x, y] = tile_types.new_wall("╩")  # Wall to the east, west, and south╩
+                elif mask == 14:
+                    self.tiles[x, y] = tile_types.new_wall("╦")  # Wall to the east, west, and north
+                elif mask == 15:
+                    self.tiles[x, y] = tile_types.new_wall("╬")  # ╬ Wall on all sides
+                else:
+                    self.tiles[x, y] = tile_types.new_wall()
+
+    def is_wall_and_visible(self, x: int, y: int) -> bool:
+        if x < 0 or y < 0 or x > self.width - 1 or y > self.height - 1:
+            return False
+        if self.tile_layout[x, y] == 1:  # and self.visible[x, y] is True:
+            return True
+        else:
+            return False
 
 
 class GameWorld:
