@@ -457,6 +457,7 @@ class LookHandler(SelectIndexHandler):
         self.x = 0
         self.y = 0
         super().__init__(engine)
+        self.engine.message_log.add_message("Press 'd' to Dig.")
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         """Check for key movement or confirmation keys."""

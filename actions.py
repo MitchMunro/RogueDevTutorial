@@ -195,5 +195,6 @@ class DigAction(Action):
         super().__init__(entity)
 
     def perform(self) -> None:
+        self.engine.message_log.add_message(f"Tile dug at: {self.x}, {self.y}.")
         self.engine.game_map.tile_layout[self.x, self.y] = 0
 

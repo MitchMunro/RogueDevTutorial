@@ -18,11 +18,12 @@ class GameMap:
     ):
         self.engine = engine
         self.width, self.height = width, height
-        self.tile_layout = np.full((width, height), fill_value=1, order="F")   # 0=floor, 1=wall
+        self.tile_layout = np.full((width, height), fill_value=1, order="F")   # 2D array of numbers representing floor layout. 0=floor, 1=wall
         self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
-        self.entities = set(entities)
         self.visible = np.full((width, height), fill_value=False, order="F")  # Tiles the player can currently see
         self.explored = np.full((width, height), fill_value=False, order="F")  # Tiles the player has seen before
+        self.explorable = np.full((width, height), fill_value=False, order="F")  # Tiles the player could currently explore and view
+        self.entities = set(entities)
         self.downstairs_location = (0, 0)
 
     @property
@@ -103,7 +104,6 @@ class GameMap:
                 self.tiles[x, y] = tile_types.floor
             elif t == 1:
                 mask = 0
-
                 '''
                 KEEP IN MIND: layout array starts at (0,0) in the top left corner.
                 - As you go DOWN the y value increases.
@@ -133,7 +133,14 @@ class GameMap:
                 elif mask == 6:
                     self.tiles[x, y] = tile_types.new_wall("╗")  # Wall to the south and west
                 elif mask == 7:
-                    self.tiles[x, y] = tile_types.new_wall("╣")  # Wall to the north, south and west
+                    if self.is_wall_and_visible(x-1, y+1) or self.is_wall_and_visible(x-1, y-1):
+                        self.tiles[x, y] = tile_types.new_wall("║")
+                    elif self.is_wall_and_visible(x-1, y+1):
+                        self.tiles[x, y] = tile_types.new_wall("╝")
+                    elif self.is_wall_and_visible(x-1, y-1):
+                        self.tiles[x, y] = tile_types.new_wall("╗")
+                    else:
+                        self.tiles[x, y] = tile_types.new_wall("╣")  # Wall to the north, south and west
                 elif mask == 8:
                     self.tiles[x, y] = tile_types.new_wall("═")  # Wall only to the east
                 elif mask == 9:
@@ -141,25 +148,59 @@ class GameMap:
                 elif mask == 10:
                     self.tiles[x, y] = tile_types.new_wall("╔")  # Wall to the south and east
                 elif mask == 11:
-                    self.tiles[x, y] = tile_types.new_wall("╠")  # Wall to the north, south and east
+                    if self.is_wall_and_visible(x+1, y+1) or self.is_wall_and_visible(x+1, y-1):
+                        self.tiles[x, y] = tile_types.new_wall("║")
+                    elif self.is_wall_and_visible(x+1, y+1):
+                        self.tiles[x, y] = tile_types.new_wall("╚")
+                    elif self.is_wall_and_visible(x+1, y-1):
+                        self.tiles[x, y] = tile_types.new_wall("╔")
+                    else:
+                        self.tiles[x, y] = tile_types.new_wall("╠")  # Wall to the north, south and east
                 elif mask == 12:
                     self.tiles[x, y] = tile_types.new_wall("═")  # Wall to the east and west
                 elif mask == 13:
-                    self.tiles[x, y] = tile_types.new_wall("╩")  # Wall to the east, west, and south╩
+                    if self.is_wall_and_visible(x-1, y-1) and self.is_wall_and_visible(x+1, y-1):
+                        self.tiles[x, y] = tile_types.new_wall("═")
+                    elif self.is_wall_and_visible(x-1, y-1):
+                        self.tiles[x, y] = tile_types.new_wall("╚")
+                    elif self.is_wall_and_visible(x+1, y-1):
+                        self.tiles[x, y] = tile_types.new_wall("╝")
+                    else:
+                        self.tiles[x, y] = tile_types.new_wall("╩")  # Wall to the east, west, and south
                 elif mask == 14:
-                    self.tiles[x, y] = tile_types.new_wall("╦")  # Wall to the east, west, and north
+                    if self.is_wall_and_visible(x-1, y+1) or self.is_wall_and_visible(x+1, y+1):
+                        self.tiles[x, y] = tile_types.new_wall("═")
+                    elif self.is_wall_and_visible(x-1, y+1):
+                        self.tiles[x, y] = tile_types.new_wall("╔")
+                    elif self.is_wall_and_visible(x+1, y+1):
+                        self.tiles[x, y] = tile_types.new_wall("╗")
+                    else:
+                        self.tiles[x, y] = tile_types.new_wall("╦")  # Wall to the east, west, and north
                 elif mask == 15:
                     self.tiles[x, y] = tile_types.new_wall("╬")  # ╬ Wall on all sides
                 else:
                     self.tiles[x, y] = tile_types.new_wall()
 
+    # TODO
+    '''
+    TODO write a new fuction that checks the whole map and what is visible and then draws it
+    Then only need to update it when something changes self.tile_layout
+    Call it something like is_visible_to_player
+    '''
+
     def is_wall_and_visible(self, x: int, y: int) -> bool:
         if x < 0 or y < 0 or x > self.width - 1 or y > self.height - 1:
             return False
-        if self.tile_layout[x, y] == 1:  # and self.visible[x, y] is True:
+        if self.tile_layout[x, y] == 1 and self.explorable[x, y]:
             return True
         else:
             return False
+
+    # def check_diagonal(self, x:int, y:int) -> bool:
+    #     if self.tile_layout[x, y] == 1:
+
+
+
 
 
 class GameWorld:

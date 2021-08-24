@@ -248,12 +248,8 @@ def generate_dungeon(
         room_width = random.randint(room_min_size, room_max_size)
         room_height = random.randint(room_min_size, room_max_size)
 
-        # x = random.randint(0, dungeon_map.width - room_width - 1)
-        # y = random.randint(0, dungeon_map.height - room_height - 1)
-
-        # Todo
-        x = 1
-        y = 1
+        x = random.randint(0, dungeon_map.width - room_width - 1)
+        y = random.randint(0, dungeon_map.height - room_height - 1)
 
         # "RectangularRoom" class makes rectangles easier to work with
         new_room = RectangularRoom(x, y, room_width, room_height)
@@ -279,12 +275,94 @@ def generate_dungeon(
         # Todo change back
 
         # place_entities(new_room, dungeon_map, engine.game_world.current_floor)
-        #
-        # dungeon_map.tiles[center_of_last_room] = tile_types.down_stairs
-        # dungeon_map.downstairs_location = center_of_last_room
+
+        dungeon_map.tiles[center_of_last_room] = tile_types.down_stairs
+        dungeon_map.downstairs_location = center_of_last_room
 
         # Finally, append the new room to the list.
 
         rooms.append(new_room)
+
+    '''
+    1. copy tile_layout to explorable
+    2. iterate through tile_layout, and for every 1 (wall), check if there is a floor tile (0) up, down, left, or right.
+    If so, return true
+    '''
+    dungeon_map.explorable = np.select(
+        condlist=[dungeon_map.tile_layout == 0, dungeon_map.tile_layout == 1],
+        choicelist=[True, False],
+        default=False,
+    )
+
+    for (x, y), t in np.ndenumerate(dungeon_map.tile_layout):
+        # Check if tile is Floor
+        if t == 0:
+            continue
+        # If not
+        if t == 1:
+            # Check up
+            try:
+                if dungeon_map.tile_layout[x, y-1] == 0:
+                    dungeon_map.explorable[x, y] = True
+                    continue
+            except:
+                pass
+
+            # Check Down
+            try:
+                if dungeon_map.tile_layout[x, y+1] == 0:
+                    dungeon_map.explorable[x, y] = True
+                    continue
+            except:
+                pass
+
+            # Check Left
+            try:
+                if dungeon_map.tile_layout[x-1, y] == 0:
+                    dungeon_map.explorable[x, y] = True
+                    continue
+            except:
+                pass
+
+            # Check Right
+            try:
+                if dungeon_map.tile_layout[x+1, y] == 0:
+                    dungeon_map.explorable[x, y] = True
+                    continue
+            except:
+                pass
+
+            # Check Up/Left
+            try:
+                if dungeon_map.tile_layout[x-1, y-1] == 0:
+                    dungeon_map.explorable[x, y] = True
+                    continue
+            except:
+                pass
+
+            # Check Up/Right
+            try:
+                if dungeon_map.tile_layout[x+1, y-1] == 0:
+                    dungeon_map.explorable[x, y] = True
+                    continue
+            except:
+                pass
+
+            # Check Down/Left
+            try:
+                if dungeon_map.tile_layout[x-1, y+1] == 0:
+                    dungeon_map.explorable[x, y] = True
+                    continue
+            except:
+                pass
+
+            # Check Down/Right
+            try:
+                if dungeon_map.tile_layout[x+1, y+1] == 0:
+                    dungeon_map.explorable[x, y] = True
+                    continue
+            except:
+                pass
+
 
     return dungeon_map
