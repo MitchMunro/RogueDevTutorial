@@ -14,11 +14,11 @@ if TYPE_CHECKING:
 
 class GameMap:
     def __init__(
-        self, engine: Engine, width: int, height: int, entities: Iterable[Entity] = ()
+            self, engine: Engine, width: int, height: int, entities: Iterable[Entity] = ()
     ):
         self.engine = engine
         self.width, self.height = width, height
-        self.tile_layout = np.full((width, height), fill_value=1, order="F")   # 2D array of numbers representing floor layout. 0=floor, 1=wall
+        self.tile_layout = np.full((width, height), fill_value=1, order="F")  # 2D array of numbers representing floor layout. 0=floor, 1=wall
         self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
         self.visible = np.full((width, height), fill_value=False, order="F")  # Tiles the player can currently see
         self.explored = np.full((width, height), fill_value=False, order="F")  # Tiles the player has seen before
@@ -43,7 +43,7 @@ class GameMap:
     def items(self) -> Iterator[Item]:
         yield from (entity for entity in self.entities if isinstance(entity, Item))
 
-    def get_blocking_entity_at_location(self, location_x: int, location_y: int,) -> Optional[Entity]:
+    def get_blocking_entity_at_location(self, location_x: int, location_y: int, ) -> Optional[Entity]:
         for entity in self.entities:
             if (
                     entity.blocks_movement
@@ -133,12 +133,14 @@ class GameMap:
                 elif mask == 6:
                     self.tiles[x, y] = tile_types.new_wall("╗")  # Wall to the south and west
                 elif mask == 7:
-                    if self.is_wall_and_visible(x-1, y+1) or self.is_wall_and_visible(x-1, y-1):
+                    if self.is_wall_and_visible(x - 1, y + 1) and self.is_wall_and_visible(x - 1, y - 1):
                         self.tiles[x, y] = tile_types.new_wall("║")
-                    elif self.is_wall_and_visible(x-1, y+1):
-                        self.tiles[x, y] = tile_types.new_wall("╝")
-                    elif self.is_wall_and_visible(x-1, y-1):
-                        self.tiles[x, y] = tile_types.new_wall("╗")
+                    # elif (self.is_wall_and_visible(x - 1, y + 1) and not self.is_wall_and_visible(x - 1, y + 2) and self.is_wall_and_visible(x, y + 2)) or \
+                    #         (self.is_wall_and_visible(x - 1, y + 1) and not self.is_wall_and_visible(x - 1, y + 2) and self.is_wall_and_visible(x + 1, y + 1)):
+                    #     self.tiles[x, y] = tile_types.new_wall("╝")
+                    # elif (self.is_wall_and_visible(x - 1, y - 1) and not self.is_wall_and_visible(x - 1, y - 2) and self.is_wall_and_visible(x, y - 2)) or \
+                    #         (self.is_wall_and_visible(x - 1, y - 1) and not self.is_wall_and_visible(x - 1, y - 2) and self.is_wall_and_visible(x + 1, y - 1)):
+                    #     self.tiles[x, y] = tile_types.new_wall("╗")
                     else:
                         self.tiles[x, y] = tile_types.new_wall("╣")  # Wall to the north, south and west
                 elif mask == 8:
@@ -148,38 +150,55 @@ class GameMap:
                 elif mask == 10:
                     self.tiles[x, y] = tile_types.new_wall("╔")  # Wall to the south and east
                 elif mask == 11:
-                    if self.is_wall_and_visible(x+1, y+1) or self.is_wall_and_visible(x+1, y-1):
+                    if self.is_wall_and_visible(x + 1, y + 1) and self.is_wall_and_visible(x + 1, y - 1):
                         self.tiles[x, y] = tile_types.new_wall("║")
-                    elif self.is_wall_and_visible(x+1, y+1):
-                        self.tiles[x, y] = tile_types.new_wall("╚")
-                    elif self.is_wall_and_visible(x+1, y-1):
-                        self.tiles[x, y] = tile_types.new_wall("╔")
+                    # elif (self.is_wall_and_visible(x + 1, y + 1) and not self.is_wall_and_visible(x + 1, y + 2) and self.is_wall_and_visible(x, y + 2)) or \
+                    #         (self.is_wall_and_visible(x + 1, y + 1) and not self.is_wall_and_visible(x + 1, y + 2) and self.is_wall_and_visible(x - 1, y + 1)):
+                    #     self.tiles[x, y] = tile_types.new_wall("╚")
+                    # elif (self.is_wall_and_visible(x + 1, y - 1) and not self.is_wall_and_visible(x + 1, y - 2) and self.is_wall_and_visible(x, y - 2)) or \
+                    #         (self.is_wall_and_visible(x + 1, y - 1) and not self.is_wall_and_visible(x + 1, y - 2) and self.is_wall_and_visible(x - 1, y - 1)):
+                    #     self.tiles[x, y] = tile_types.new_wall("╔")
                     else:
                         self.tiles[x, y] = tile_types.new_wall("╠")  # Wall to the north, south and east
                 elif mask == 12:
                     self.tiles[x, y] = tile_types.new_wall("═")  # Wall to the east and west
                 elif mask == 13:
-                    if self.is_wall_and_visible(x-1, y-1) and self.is_wall_and_visible(x+1, y-1):
+                    if self.is_wall_and_visible(x - 1, y - 1) and self.is_wall_and_visible(x + 1, y - 1):
                         self.tiles[x, y] = tile_types.new_wall("═")
-                    elif self.is_wall_and_visible(x-1, y-1):
-                        self.tiles[x, y] = tile_types.new_wall("╚")
-                    elif self.is_wall_and_visible(x+1, y-1):
-                        self.tiles[x, y] = tile_types.new_wall("╝")
+                    # elif (self.is_wall_and_visible(x - 1, y - 1) and not self.is_wall_and_visible(x - 2, y - 1) and self.is_wall_and_visible(x - 2, y)) or \
+                    #         (self.is_wall_and_visible(x - 1, y - 1) and not self.is_wall_and_visible(x - 2, y - 1) and self.is_wall_and_visible(x - 1, y + 1)):
+                    #     self.tiles[x, y] = tile_types.new_wall("╚")
+                    # elif (self.is_wall_and_visible(x + 1, y - 1) and not self.is_wall_and_visible(x + 2, y - 1) and self.is_wall_and_visible(x + 2, y)) or \
+                    #         (self.is_wall_and_visible(x + 1, y - 1) and not self.is_wall_and_visible(x + 2, y - 1) and self.is_wall_and_visible(x + 1, y + 1)):
+                    #     self.tiles[x, y] = tile_types.new_wall("╝")
                     else:
                         self.tiles[x, y] = tile_types.new_wall("╩")  # Wall to the east, west, and south
                 elif mask == 14:
-                    if self.is_wall_and_visible(x-1, y+1) or self.is_wall_and_visible(x+1, y+1):
+                    if self.is_wall_and_visible(x - 1, y + 1) and self.is_wall_and_visible(x + 1, y + 1):
                         self.tiles[x, y] = tile_types.new_wall("═")
-                    elif self.is_wall_and_visible(x-1, y+1):
-                        self.tiles[x, y] = tile_types.new_wall("╔")
-                    elif self.is_wall_and_visible(x+1, y+1):
-                        self.tiles[x, y] = tile_types.new_wall("╗")
+                    # elif (self.is_wall_and_visible(x - 1, y + 1) and not self.is_wall_and_visible(x - 2, y + 1) and self.is_wall_and_visible(x - 2, y)) or \
+                    #         (self.is_wall_and_visible(x - 1, y - 1) and not self.is_wall_and_visible(x - 2, y - 1) and self.is_wall_and_visible(x - 1, y - 1)):
+                    #     self.tiles[x, y] = tile_types.new_wall("╔")
+                    # elif (self.is_wall_and_visible(x + 1, y + 1) and not self.is_wall_and_visible(x + 2, y + 1) and self.is_wall_and_visible(x + 2, y)) or \
+                    #         (self.is_wall_and_visible(x + 1, y + 1) and not self.is_wall_and_visible(x + 2, y + 1) and self.is_wall_and_visible(x + 1, y - 1)):
+                    #     self.tiles[x, y] = tile_types.new_wall("╗")
                     else:
                         self.tiles[x, y] = tile_types.new_wall("╦")  # Wall to the east, west, and north
                 elif mask == 15:
-                    self.tiles[x, y] = tile_types.new_wall("╬")  # ╬ Wall on all sides
+                    if not self.is_wall_and_visible(x+1, y-1) and self.is_wall_and_visible(x-1, y+1):
+                        self.tiles[x, y] = tile_types.new_wall("╚")
+                    elif not self.is_wall_and_visible(x+1, y+1) and self.is_wall_and_visible(x-1, y-1):
+                        self.tiles[x, y] = tile_types.new_wall("╔")
+                    elif not self.is_wall_and_visible(x-1, y+1) and self.is_wall_and_visible(x+1, y-1):
+                        self.tiles[x, y] = tile_types.new_wall("╗")
+                    elif not self.is_wall_and_visible(x-1, y-1) and self.is_wall_and_visible(x+1, y+1):
+                        self.tiles[x, y] = tile_types.new_wall("╝")
+                    else:
+                        self.tiles[x, y] = tile_types.new_wall("╬")  # ╬ Wall on all sides
                 else:
                     self.tiles[x, y] = tile_types.new_wall()
+
+    # def is_T_wall(self, x: int, y:int ) -> bool:
 
     # TODO
     '''
@@ -200,24 +219,21 @@ class GameMap:
     #     if self.tile_layout[x, y] == 1:
 
 
-
-
-
 class GameWorld:
     """
     Holds the settings for the GameMap, and generates new maps when moving down the stairs.
     """
 
     def __init__(
-        self,
-        *,
-        engine: Engine,
-        map_width: int,
-        map_height: int,
-        max_rooms: int,
-        room_min_size: int,
-        room_max_size: int,
-        current_floor: int = 0
+            self,
+            *,
+            engine: Engine,
+            map_width: int,
+            map_height: int,
+            max_rooms: int,
+            room_min_size: int,
+            room_max_size: int,
+            current_floor: int = 0
     ):
         self.engine = engine
 

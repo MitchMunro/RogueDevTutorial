@@ -272,8 +272,7 @@ def generate_dungeon(
 
             center_of_last_room = new_room.center
 
-        # Todo change back
-
+        # Spawn Entities TODO
         # place_entities(new_room, dungeon_map, engine.game_world.current_floor)
 
         dungeon_map.tiles[center_of_last_room] = tile_types.down_stairs
@@ -364,5 +363,5 @@ def generate_dungeon(
             except:
                 pass
 
-
     return dungeon_map
+
